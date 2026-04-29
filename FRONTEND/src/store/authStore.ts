@@ -1,0 +1,148 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { authAPI } from '@/lib/api'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'manager' | 'user' | 'sales' | 'support'
+  avatar?: string
+}
+
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  token: string | null
+  loading: boolean
+  error: string | null
+  login: (email: string, password: string) => Promise<void>
+  register: (name: string, email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  updateUser: (user: Partial<User>) => void
+  clearError: () => void
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isAuthenticated: false,
+      token: null,
+      loading: false,
+      error: null,
+
+      login: async (email: string, password: string) => {
+        try {
+          set({ loading: true, error: null })
+          const response = await authAPI.login(email, password)
+          
+          const user: User = {
+            id: response.data.user._id,
+            name: response.data.user.fullname,
+            email: response.data.user.email,
+            role: response.data.user.role,
+            avatar: response.data.user.avatar
+          }
+          
+          set({
+            user,
+            isAuthenticated: true,
+            token: response.data.accessToken,
+            loading: false
+          })
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.message || error.message || 'Login failed'
+          set({ 
+            loading: false, 
+            error: errorMessage,
+            isAuthenticated: false,
+            user: null,
+            token: null
+          })
+          throw new Error(errorMessage)
+        }
+      },
+
+      register: async (name: string, email: string, password: string) => {
+        try {
+          set({ loading: true, error: null })
+          
+          // Step 1: Register the admin user
+          await authAPI.register(name, email, password)
+          
+          // Step 2: Log in with the credentials
+          const loginResponse = await authAPI.login(email, password)
+          
+          const user: User = {
+            id: loginResponse.data.user._id,
+            name: loginResponse.data.user.fullname,
+            email: loginResponse.data.user.email,
+            role: loginResponse.data.user.role,
+            avatar: loginResponse.data.user.avatar
+          }
+          
+          set({
+            user,
+            isAuthenticated: true,
+            token: loginResponse.data.accessToken,
+            loading: false
+          })
+        } catch (error: any) {
+          let errorMessage = 'Registration failed'
+          if (error.response?.status === 409) {
+            errorMessage = 'An account with this email already exists. Please sign in instead.'
+          } else if (error.response?.data?.message) {
+            errorMessage = error.response.data.message
+          } else if (error.message && !error.message.startsWith('Request failed')) {
+            errorMessage = error.message
+          }
+          set({ 
+            loading: false, 
+            error: errorMessage,
+            isAuthenticated: false,
+            user: null,
+            token: null
+          })
+          throw new Error(errorMessage)
+        }
+      },
+
+      logout: async () => {
+        try {
+          await authAPI.logout()
+        } catch (error) {
+          console.error('Logout error:', error)
+        } finally {
+          set({
+            user: null,
+            isAuthenticated: false,
+            token: null,
+            error: null
+          })
+        }
+      },
+
+      updateUser: (updatedUser: Partial<User>) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updatedUser } : null
+        }))
+      },
+
+      clearError: () => {
+        set({ error: null })
+      }
+    }),
+    {
+      name: 'auth-storage',
+      onRehydrateStorage: () => (state) => {
+        // Validate rehydrated state
+        if (state && (!state.user || !state.token)) {
+          state.isAuthenticated = false
+          state.user = null
+          state.token = null
+        }
+      },
+    }
+  )
+)

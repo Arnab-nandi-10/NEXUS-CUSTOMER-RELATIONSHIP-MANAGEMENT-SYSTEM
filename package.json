@@ -1,0 +1,26 @@
+{
+  "name": "nexus-crm",
+  "version": "1.0.0",
+  "description": "Modern SaaS CRM - Full Stack Application",
+  "private": true,
+  "scripts": {
+    "install-all": "cd BACKEND && npm install && cd ../FRONTEND && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd BACKEND && npm run dev",
+    "dev:frontend": "cd FRONTEND && npm run dev",
+    "build:frontend": "cd FRONTEND && npm run build",
+    "preview:frontend": "cd FRONTEND && npm run preview"
+  },
+  "keywords": [
+    "crm",
+    "saas",
+    "react",
+    "typescript",
+    "express",
+    "mongodb",
+    "tailwindcss"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
