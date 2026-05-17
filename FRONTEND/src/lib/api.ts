@@ -1,12 +1,15 @@
 import axios from 'axios'
 
 const normalizeApiUrl = (url: string) => {
-  const trimmedUrl = url.trim().replace(/\/+$/, '')
-  if (/\/api(\/v1)?$/.test(trimmedUrl)) {
-    return trimmedUrl
+  const trimmedUrl = url.trim()
+  const urlWithProtocol = /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`
+  const normalizedUrl = urlWithProtocol.replace(/\/+$/, '')
+
+  if (/\/api(\/v1)?$/.test(normalizedUrl)) {
+    return normalizedUrl
   }
 
-  return `${trimmedUrl}/api`
+  return `${normalizedUrl}/api`
 }
 
 const getApiUrl = () => {
