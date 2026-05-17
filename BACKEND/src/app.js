@@ -35,13 +35,21 @@ const isVercelPreviewAllowed = (origin) => {
     return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
 }
 
+const isLocalDevOriginAllowed = (origin) => {
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+}
+
 const isOriginAllowed = (origin) => {
     if (!origin) {
         return true
     }
 
     const normalizedOrigin = normalizeOrigin(origin)
-    return getAllowedOrigins().has(normalizedOrigin) || isVercelPreviewAllowed(normalizedOrigin)
+    return (
+        getAllowedOrigins().has(normalizedOrigin) ||
+        isVercelPreviewAllowed(normalizedOrigin) ||
+        isLocalDevOriginAllowed(normalizedOrigin)
+    )
 }
 
 const corsMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
