@@ -35,24 +35,53 @@ const isVercelPreviewAllowed = (origin) => {
     return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
 }
 
+const isOriginAllowed = (origin) => {
+    if (!origin) {
+        return true
+    }
+
+    const normalizedOrigin = normalizeOrigin(origin)
+    return getAllowedOrigins().has(normalizedOrigin) || isVercelPreviewAllowed(normalizedOrigin)
+}
+
+const corsMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+const corsAllowedHeaders = ["Content-Type", "Authorization"]
+
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin) {
-            return callback(null, true)
-        }
-
-        const normalizedOrigin = normalizeOrigin(origin)
-        if (getAllowedOrigins().has(normalizedOrigin) || isVercelPreviewAllowed(normalizedOrigin)) {
+        if (isOriginAllowed(origin)) {
             return callback(null, true)
         }
 
         return callback(new Error(`CORS blocked origin: ${origin}`))
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: corsMethods,
+    allowedHeaders: corsAllowedHeaders,
     optionsSuccessStatus: 204
 }
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin
+
+    if (origin && isOriginAllowed(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", normalizeOrigin(origin))
+        res.setHeader("Access-Control-Allow-Credentials", "true")
+        res.setHeader("Vary", "Origin")
+    }
+
+    res.setHeader("Access-Control-Allow-Methods", corsMethods.join(","))
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        req.headers["access-control-request-headers"] || corsAllowedHeaders.join(",")
+    )
+
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(204)
+    }
+
+    next()
+})
 
 app.use(cors(corsOptions))
 app.options(/.*/, cors(corsOptions))
@@ -98,6 +127,7 @@ import dashboardRouter from "./routes/dashboard.routes.js"
 
 // route declaretion
 app.use("/api/auth", authRouter)
+app.use("/api/auths", authRouter)
 app.use("/api/users", usersRouter)
 app.use("/api/clients", clientRouter)
 app.use("/api/communications", communicationRouter)
@@ -115,12 +145,26 @@ app.use("/api/v1/dashboard", dashboardRouter)
 
 // Backward-compatible routes for frontend deployments that were built with the API root URL.
 app.use("/auth", authRouter)
+app.use("/auths", authRouter)
 app.use("/users", usersRouter)
 app.use("/clients", clientRouter)
 app.use("/communications", communicationRouter)
 app.use("/reminders", reminderRouter)
 app.use("/tasks", taskRouter)
 app.use("/dashboard", dashboardRouter)
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        statusCode: 404,
+        message: `Route not found: ${req.method} ${req.originalUrl}`,
+        availableAuthRoutes: [
+            "/api/auth/register-admin",
+            "/api/v1/auth/register-admin",
+            "/auth/register-admin"
+        ]
+    })
+})
 
 // Global error handler - returns JSON instead of HTML
 app.use((err, req, res, next) => {
