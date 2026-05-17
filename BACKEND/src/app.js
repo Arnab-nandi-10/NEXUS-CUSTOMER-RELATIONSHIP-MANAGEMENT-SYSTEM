@@ -58,14 +58,17 @@ app.use(urlencoded({extended : true, limit : "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-app.get("/", (_, res) => {
+const sendApiStatus = (_, res) => {
     res.status(200).json({
         success: true,
         message: "Nexus CRM API is running",
         health: "/health",
         api: "/api/v1"
     })
-})
+}
+
+app.head("/", (_, res) => res.sendStatus(200))
+app.get("/", sendApiStatus)
 
 app.get("/health", (_, res) => {
     res.status(200).json({
