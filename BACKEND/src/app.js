@@ -6,6 +6,8 @@ const app = express()
 
 app.set("trust proxy", 1)
 
+const FRONTEND_ORIGIN = "https://nexus-customer-relationship-managem.vercel.app"
+
 const normalizeOrigin = (origin) => origin?.trim().replace(/\/$/, "")
 
 const getAllowedOrigins = () => {
@@ -21,9 +23,7 @@ const getAllowedOrigins = () => {
 
     return new Set([
         ...configuredOrigins,
-        "https://nexus-customer-relationship-managem.vercel.app",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        FRONTEND_ORIGIN
     ])
 }
 
@@ -35,7 +35,7 @@ const isVercelPreviewAllowed = (origin) => {
     return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
 }
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
         if (!origin) {
             return callback(null, true)
@@ -48,8 +48,14 @@ app.use(cors({
 
         return callback(new Error(`CORS blocked origin: ${origin}`))
     },
-    credentials: true
-}))
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
+}
+
+app.use(cors(corsOptions))
+app.options(/.*/, cors(corsOptions))
 
 
 
@@ -91,6 +97,14 @@ import taskRouter from "./routes/task.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
 // route declaretion
+app.use("/api/auth", authRouter)
+app.use("/api/users", usersRouter)
+app.use("/api/clients", clientRouter)
+app.use("/api/communications", communicationRouter)
+app.use("/api/reminders", reminderRouter)
+app.use("/api/tasks", taskRouter)
+app.use("/api/dashboard", dashboardRouter)
+
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/users", usersRouter)
 app.use("/api/v1/clients", clientRouter)

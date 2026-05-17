@@ -2,10 +2,23 @@ import axios from 'axios'
 
 const normalizeApiUrl = (url: string) => {
   const trimmedUrl = url.trim().replace(/\/+$/, '')
-  return trimmedUrl.endsWith('/api/v1') ? trimmedUrl : `${trimmedUrl}/api/v1`
+  if (/\/api(\/v1)?$/.test(trimmedUrl)) {
+    return trimmedUrl
+  }
+
+  return `${trimmedUrl}/api`
 }
 
-const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1')
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (!envUrl) {
+    throw new Error('VITE_API_URL is not configured')
+  }
+
+  return normalizeApiUrl(envUrl)
+}
+
+const API_URL = getApiUrl()
 
 export const api = axios.create({
   baseURL: API_URL,

@@ -33,7 +33,7 @@ CORS_ORIGIN=http://localhost:3000,https://your-frontend.vercel.app
 After Render deploys, your API base URL will look like:
 
 ```env
-https://mini-crm-backend-tf6f.onrender.com/api/v1
+https://mini-crm-backend-tf6f.onrender.com/api
 ```
 
 ## Frontend on Vercel
@@ -48,8 +48,10 @@ Create/import the Vercel project with:
 Set this Vercel environment variable:
 
 ```env
-VITE_API_URL=https://mini-crm-backend-tf6f.onrender.com/api/v1
+VITE_API_URL=https://mini-crm-backend-tf6f.onrender.com/api
 ```
+
+Use `tf6f`, not `tt6f`. The `tt6f` hostname currently returns Render's `x-render-routing: no-server` response, which causes browser network/CORS failures before Express receives the request.
 
 Enable Web Analytics and Speed Insights in the Vercel dashboard. The app already includes:
 
