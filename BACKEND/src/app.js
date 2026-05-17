@@ -53,7 +53,7 @@ const isOriginAllowed = (origin) => {
 }
 
 const corsMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-const corsAllowedHeaders = ["Content-Type", "Authorization"]
+const corsAllowedHeaders = ["Content-Type", "Authorization", "Cookie"]
 
 const corsOptions = {
     origin: (origin, callback) => {
@@ -61,37 +61,20 @@ const corsOptions = {
             return callback(null, true)
         }
 
+        console.warn(`[CORS] Blocked origin: ${origin}`)
         return callback(new Error(`CORS blocked origin: ${origin}`))
     },
     credentials: true,
     methods: corsMethods,
     allowedHeaders: corsAllowedHeaders,
+    exposedHeaders: ["Set-Cookie"],
     optionsSuccessStatus: 204
 }
 
-app.use((req, res, next) => {
-    const origin = req.headers.origin
-
-    if (origin && isOriginAllowed(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", normalizeOrigin(origin))
-        res.setHeader("Access-Control-Allow-Credentials", "true")
-        res.setHeader("Vary", "Origin")
-    }
-
-    res.setHeader("Access-Control-Allow-Methods", corsMethods.join(","))
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        req.headers["access-control-request-headers"] || corsAllowedHeaders.join(",")
-    )
-
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204)
-    }
-
-    next()
-})
-
+// Single unified CORS middleware — MUST be first to avoid header conflicts.
+// Handles both preflight OPTIONS and actual requests.
 app.use(cors(corsOptions))
+// Respond to OPTIONS preflight for every route (regex required for Express 5)
 app.options(/.*/, cors(corsOptions))
 
 
@@ -133,7 +116,7 @@ import reminderRouter from "./routes/reminder.routes.js"
 import taskRouter from "./routes/task.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
-// route declaretion
+// route declaration
 app.use("/api/auth", authRouter)
 app.use("/api/auths", authRouter)
 app.use("/api/users", usersRouter)

@@ -42,7 +42,8 @@ export default function Register() {
     setIsLoading(true)
     try {
       await register(name.trim(), email.trim(), password)
-      navigate('/onboarding')
+      // Registration succeeded — navigate to login so user can sign in cleanly
+      navigate('/login?registered=1')
     } catch (error: any) {
       setError(error.message || 'Registration failed. Please try again.')
     } finally {

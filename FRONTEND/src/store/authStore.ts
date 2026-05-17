@@ -70,28 +70,13 @@ export const useAuthStore = create<AuthState>()(
       register: async (name: string, email: string, password: string) => {
         try {
           set({ loading: true, error: null })
-          
-          // Step 1: Register the public account
+
+          // Just create the account — do NOT auto-login.
+          // Auto-login was masking token errors as registration errors.
           await authAPI.register(name, email, password)
-          
-          // Step 2: Log in with the credentials
-          const loginResponse = await authAPI.login(email, password)
-          
-          const user: User = {
-            id: loginResponse.data.user._id,
-            name: loginResponse.data.user.fullname,
-            email: loginResponse.data.user.email,
-            role: loginResponse.data.user.role,
-            avatar: loginResponse.data.user.avatar
-          }
-          
-          set({
-            user,
-            isAuthenticated: true,
-            token: loginResponse.data.accessToken,
-            loading: false
-          })
-          analyticsEvents.registrationCompleted(user.role)
+
+          set({ loading: false })
+          analyticsEvents.registrationCompleted('sales')
         } catch (error: any) {
           let errorMessage = 'Registration failed'
           if (error.response?.status === 409) {
@@ -101,8 +86,8 @@ export const useAuthStore = create<AuthState>()(
           } else if (error.message && !error.message.startsWith('Request failed')) {
             errorMessage = error.message
           }
-          set({ 
-            loading: false, 
+          set({
+            loading: false,
             error: errorMessage,
             isAuthenticated: false,
             user: null,

@@ -155,15 +155,21 @@ const getPublicSignupRole = async () => {
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId)
+        if (!user) {
+            throw new ApiError(404, `User not found with ID: ${userId}`)
+        }
+
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
-        user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false });
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
 
         return { accessToken, refreshToken }
-
     } catch (error) {
-        throw new ApiError(500, "Somthing went wrong while generating refresh and access token")
+        // Log the real error so we can debug it
+        console.error("[generateAccessAndRefreshToken] ERROR:", error?.message, error?.stack)
+        if (error instanceof ApiError) throw error
+        throw new ApiError(500, `Token generation failed: ${error?.message || "Unknown error"}`)
     }
 }
 
