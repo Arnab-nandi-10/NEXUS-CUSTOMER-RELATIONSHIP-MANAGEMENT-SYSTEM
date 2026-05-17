@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: nexus-crm-backend
+    runtime: node
+    plan: free
+    rootDir: BACKEND
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: MONGODB_URI
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRY
+        value: 1d
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 10d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CORS_ALLOW_VERCEL_PREVIEWS
+        value: false

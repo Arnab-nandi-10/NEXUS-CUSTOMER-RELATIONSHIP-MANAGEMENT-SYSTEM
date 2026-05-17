@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Search, UserCog, Shield, Briefcase, Headphones, ToggleLeft, ToggleRight, Edit2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, UserCog, Shield, Briefcase, Headphones, ToggleLeft, ToggleRight, Edit2, ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Avatar from '@/components/ui/Avatar'

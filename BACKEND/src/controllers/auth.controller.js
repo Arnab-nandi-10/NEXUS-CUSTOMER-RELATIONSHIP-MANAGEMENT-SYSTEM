@@ -5,9 +5,14 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponce.js"
 import jwt from "jsonwebtoken"
 
-const options = {          //the options is used in refreshtoken controller
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production'
+const getCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === "production"
+
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax"
+    }
 }
 
 
@@ -116,8 +121,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, getCookieOptions())
+        .cookie("refreshToken", refreshToken, getCookieOptions())
         .json(
             new ApiResponse(
                 200,
@@ -148,8 +153,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     res
         .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
+        .clearCookie("accessToken", getCookieOptions())
+        .clearCookie("refreshToken", getCookieOptions())
         .json(new ApiResponse(200, {}, "User Logged Out"))
 
 })
@@ -178,8 +183,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
+            .cookie("accessToken", accessToken, getCookieOptions())
+            .cookie("refreshToken", refreshToken, getCookieOptions())
             .json(
                 new ApiResponse(200,
                 {

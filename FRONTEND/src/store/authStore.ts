@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authAPI } from '@/lib/api'
+import { analyticsEvents } from '@/lib/analytics'
 
 interface User {
   id: string
@@ -51,6 +52,7 @@ export const useAuthStore = create<AuthState>()(
             token: response.data.accessToken,
             loading: false
           })
+          analyticsEvents.loginSucceeded(user.role)
         } catch (error: any) {
           const errorMessage = error.response?.data?.message || error.message || 'Login failed'
           set({ 
@@ -88,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
             token: loginResponse.data.accessToken,
             loading: false
           })
+          analyticsEvents.registrationCompleted(user.role)
         } catch (error: any) {
           let errorMessage = 'Registration failed'
           if (error.response?.status === 409) {
@@ -114,6 +117,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Logout error:', error)
         } finally {
+          analyticsEvents.logoutCompleted()
           set({
             user: null,
             isAuthenticated: false,

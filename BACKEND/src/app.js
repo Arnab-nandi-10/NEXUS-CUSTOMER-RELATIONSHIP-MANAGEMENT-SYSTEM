@@ -4,9 +4,50 @@ import cookieParser from "cookie-parser"
 
 const app = express()
 
+app.set("trust proxy", 1)
+
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/$/, "")
+
+const getAllowedOrigins = () => {
+    const configuredOrigins = [
+        process.env.CORS_ORIGIN,
+        process.env.FRONTEND_URL,
+        process.env.CLIENT_URL
+    ]
+        .filter(Boolean)
+        .flatMap((origins) => origins.split(","))
+        .map(normalizeOrigin)
+        .filter(Boolean)
+
+    return new Set([
+        ...configuredOrigins,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ])
+}
+
+const isVercelPreviewAllowed = (origin) => {
+    if (process.env.CORS_ALLOW_VERCEL_PREVIEWS !== "true") {
+        return false
+    }
+
+    return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)
+}
+
 app.use(cors({
-    origin : process.env.CORS_ORIGIN,
-    credentials : true
+    origin: (origin, callback) => {
+        if (!origin) {
+            return callback(null, true)
+        }
+
+        const normalizedOrigin = normalizeOrigin(origin)
+        if (getAllowedOrigins().has(normalizedOrigin) || isVercelPreviewAllowed(normalizedOrigin)) {
+            return callback(null, true)
+        }
+
+        return callback(new Error(`CORS blocked origin: ${origin}`))
+    },
+    credentials: true
 }))
 
 
@@ -15,6 +56,24 @@ app.use(express.json({limit : "16kb"}))
 app.use(urlencoded({extended : true, limit : "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
+
+app.get("/", (_, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Nexus CRM API is running",
+        health: "/health",
+        api: "/api/v1"
+    })
+})
+
+app.get("/health", (_, res) => {
+    res.status(200).json({
+        success: true,
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+    })
+})
 
 
 
