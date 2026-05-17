@@ -20,7 +20,7 @@ ACCESS_TOKEN_SECRET=long-random-secret
 ACCESS_TOKEN_EXPIRY=1d
 REFRESH_TOKEN_SECRET=different-long-random-secret
 REFRESH_TOKEN_EXPIRY=10d
-CORS_ORIGIN=https://your-frontend.vercel.app
+CORS_ORIGIN=https://nexus-customer-relationship-managem.vercel.app
 CORS_ALLOW_VERCEL_PREVIEWS=false
 ```
 
@@ -33,7 +33,7 @@ CORS_ORIGIN=http://localhost:3000,https://your-frontend.vercel.app
 After Render deploys, your API base URL will look like:
 
 ```env
-https://your-backend.onrender.com/api/v1
+https://mini-crm-backend-tt6f.onrender.com/api/v1
 ```
 
 ## Frontend on Vercel
@@ -48,7 +48,7 @@ Create/import the Vercel project with:
 Set this Vercel environment variable:
 
 ```env
-VITE_API_URL=https://your-backend.onrender.com/api/v1
+VITE_API_URL=https://mini-crm-backend-tt6f.onrender.com/api/v1
 ```
 
 Enable Web Analytics and Speed Insights in the Vercel dashboard. The app already includes:

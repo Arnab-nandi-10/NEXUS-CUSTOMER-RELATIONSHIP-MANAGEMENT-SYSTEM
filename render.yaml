@@ -23,6 +23,6 @@ services:
       - key: REFRESH_TOKEN_EXPIRY
         value: 10d
       - key: CORS_ORIGIN
-        sync: false
+        value: https://nexus-customer-relationship-managem.vercel.app
       - key: CORS_ALLOW_VERCEL_PREVIEWS
         value: false
