@@ -96,6 +96,15 @@ app.use("/api/v1/reminders", reminderRouter)
 app.use("/api/v1/tasks", taskRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
 
+// Backward-compatible routes for frontend deployments that were built with the API root URL.
+app.use("/auth", authRouter)
+app.use("/users", usersRouter)
+app.use("/clients", clientRouter)
+app.use("/communications", communicationRouter)
+app.use("/reminders", reminderRouter)
+app.use("/tasks", taskRouter)
+app.use("/dashboard", dashboardRouter)
+
 // Global error handler - returns JSON instead of HTML
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500
