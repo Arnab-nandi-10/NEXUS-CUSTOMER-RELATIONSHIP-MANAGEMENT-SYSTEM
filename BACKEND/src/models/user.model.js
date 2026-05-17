@@ -34,9 +34,29 @@ const userSchema = new Schema(
             default: true
         },
 
+        authProvider: {
+            type: String,
+            enum: ["local", "google", "github"],
+            default: "local"
+        },
+
+        googleId: {
+            type: String,
+            index: true,
+            sparse: true
+        },
+
+        githubId: {
+            type: String,
+            index: true,
+            sparse: true
+        },
+
         password:{
             type: String,
-            required: [true, "Password is required"]
+            required: function () {
+                return !this.authProvider || this.authProvider === "local"
+            }
         },
 
         refreshToken:{

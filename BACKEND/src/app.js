@@ -160,8 +160,20 @@ app.use((req, res) => {
         message: `Route not found: ${req.method} ${req.originalUrl}`,
         availableAuthRoutes: [
             "/api/auth/register-admin",
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/google",
+            "/api/auth/github",
             "/api/v1/auth/register-admin",
-            "/auth/register-admin"
+            "/api/v1/auth/signup",
+            "/api/v1/auth/login",
+            "/api/v1/auth/google",
+            "/api/v1/auth/github",
+            "/auth/register-admin",
+            "/auth/signup",
+            "/auth/login",
+            "/auth/google",
+            "/auth/github"
         ]
     })
 })
@@ -170,6 +182,13 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500
     const message = err.message || "Something went wrong"
+
+    if (/\/auth\/(google|github)\/callback$/.test(req.path)) {
+        const frontendUrl = (process.env.FRONTEND_URL || FRONTEND_ORIGIN).trim().replace(/\/$/, "")
+        const redirectUrl = new URL("/login", frontendUrl)
+        redirectUrl.searchParams.set("error", message)
+        return res.redirect(redirectUrl.toString())
+    }
 
     return res.status(statusCode).json({
         success: false,

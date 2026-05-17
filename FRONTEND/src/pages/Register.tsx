@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Zap, Mail, Lock, User, AlertCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { useAuthStore } from '@/store/authStore'
+import { authAPI } from '@/lib/api'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -13,6 +14,16 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    clearError()
+  }, [clearError])
+
+  const handleOAuthLogin = (provider: 'google' | 'github') => {
+    setError('')
+    clearError()
+    window.location.href = authAPI.getOAuthUrl(provider)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,11 +172,11 @@ export default function Register() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" onClick={() => handleOAuthLogin('google')}>
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
                 Google
               </Button>
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" onClick={() => handleOAuthLogin('github')}>
                 <img src="https://github.com/favicon.ico" alt="GitHub" className="w-5 h-5" />
                 GitHub
               </Button>

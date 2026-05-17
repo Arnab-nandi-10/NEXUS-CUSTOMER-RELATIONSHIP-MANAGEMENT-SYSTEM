@@ -21,7 +21,7 @@ const getApiUrl = () => {
   return normalizeApiUrl(envUrl)
 }
 
-const API_URL = getApiUrl()
+export const API_URL = getApiUrl()
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -123,7 +123,7 @@ export const authAPI = {
     return res.data
   },
   register: async (name: string, email: string, password: string) => {
-    const res = await api.post('/auth/register-admin', { fullname: name, email, password })
+    const res = await api.post('/auth/signup', { fullname: name, email, password })
     return res.data
   },
   registerUser: async (fullname: string, email: string, role: string, password: string) => {
@@ -142,6 +142,7 @@ export const authAPI = {
     const res = await api.post('/auth/change-password', { oldPassword, newPassword })
     return res.data
   },
+  getOAuthUrl: (provider: 'google' | 'github') => `${API_URL}/auth/${provider}`,
 }
 
 // ─── Clients ───────────────────────────────────────

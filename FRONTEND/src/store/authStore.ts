@@ -19,6 +19,7 @@ interface AuthState {
   error: string | null
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
+  completeOAuthLogin: (token: string, user: User) => void
   logout: () => Promise<void>
   updateUser: (user: Partial<User>) => void
   clearError: () => void
@@ -70,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true, error: null })
           
-          // Step 1: Register the admin user
+          // Step 1: Register the public account
           await authAPI.register(name, email, password)
           
           // Step 2: Log in with the credentials
@@ -109,6 +110,17 @@ export const useAuthStore = create<AuthState>()(
           })
           throw new Error(errorMessage)
         }
+      },
+
+      completeOAuthLogin: (token: string, user: User) => {
+        set({
+          user,
+          isAuthenticated: true,
+          token,
+          loading: false,
+          error: null
+        })
+        analyticsEvents.loginSucceeded(user.role)
       },
 
       logout: async () => {

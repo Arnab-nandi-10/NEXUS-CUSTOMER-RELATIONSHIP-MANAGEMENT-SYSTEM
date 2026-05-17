@@ -1,27 +1,30 @@
 # Deployment
 
-## Backend on Render
+## Backend on Railway
 
-Use the root `render.yaml` Blueprint, or create a Render Web Service manually with:
+Create a Railway Node service from the repo and set the service root/start settings to:
 
 - Root Directory: `BACKEND`
-- Runtime: `Node`
 - Build Command: `npm install`
 - Start Command: `npm start`
-- Health Check Path: `/health`
 
-Set these Render environment variables:
+Set these Railway environment variables:
 
 ```env
 NODE_ENV=production
-HOST=0.0.0.0
 MONGODB_URI=your-mongodb-atlas-uri
 ACCESS_TOKEN_SECRET=long-random-secret
 ACCESS_TOKEN_EXPIRY=1d
 REFRESH_TOKEN_SECRET=different-long-random-secret
 REFRESH_TOKEN_EXPIRY=10d
 CORS_ORIGIN=https://nexus-customer-relationship-managem.vercel.app
+FRONTEND_URL=https://nexus-customer-relationship-managem.vercel.app
+BACKEND_URL=https://nexus-customer-relationship-management-system-production.up.railway.app
 CORS_ALLOW_VERCEL_PREVIEWS=false
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
 ```
 
 If you want multiple frontend origins, separate them with commas:
@@ -34,6 +37,13 @@ After Railway deploys, your API base URL will look like:
 
 ```env
 https://nexus-customer-relationship-management-system-production.up.railway.app/api
+```
+
+OAuth callback URLs to put in the provider dashboards:
+
+```txt
+Google: https://nexus-customer-relationship-management-system-production.up.railway.app/api/auth/google/callback
+GitHub: https://nexus-customer-relationship-management-system-production.up.railway.app/api/auth/github/callback
 ```
 
 ## Frontend on Vercel
