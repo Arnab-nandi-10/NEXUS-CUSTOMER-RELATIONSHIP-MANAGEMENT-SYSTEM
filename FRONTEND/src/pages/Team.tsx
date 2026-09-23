@@ -165,7 +165,7 @@ export default function Team() {
                 <tr key={u._id} className="hover:bg-dark-50 dark:hover:bg-dark-900/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar src={u.avatar} alt={u.fullname} size="md" />
+                      <Avatar src={u.avatar} alt={u.fullname || u.email || 'User'} size="md" />
                       <div>
                         <p className="font-medium text-dark-900 dark:text-dark-50 text-sm">{u.fullname}</p>
                         <p className="text-xs text-dark-500">{u.email}</p>

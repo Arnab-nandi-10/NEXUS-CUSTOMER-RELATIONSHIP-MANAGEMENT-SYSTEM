@@ -32,6 +32,10 @@ const createComm = asyncHandler(async (req, res)=>{
         throw new ApiError(404, "Client not found")
     }
 
+    if (req.user.role !== "admin" && client.assignedTo?.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You can only log communications for assigned clients")
+    }
+
     const communication = await Communication.create({
         clientId,
         type,

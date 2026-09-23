@@ -16,7 +16,7 @@ export default function Avatar({ src, alt, size = 'md', className }: AvatarProps
   }
 
   const getInitials = (name: string) => {
-    return name
+    return (name || 'User')
       .split(' ')
       .map(n => n[0])
       .join('')

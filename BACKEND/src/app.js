@@ -84,6 +84,42 @@ app.use(urlencoded({extended : true, limit : "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"])
+
+const getRequestOrigin = (req) => {
+    const origin = req.get("origin")
+    if (origin) {
+        return normalizeOrigin(origin)
+    }
+
+    const referer = req.get("referer")
+    if (!referer) {
+        return null
+    }
+
+    try {
+        return normalizeOrigin(new URL(referer).origin)
+    } catch {
+        return null
+    }
+}
+
+// Cookie-authenticated state changes must originate from an approved site.
+app.use((req, res, next) => {
+    if (
+        unsafeMethods.has(req.method) &&
+        req.cookies?.accessToken &&
+        !isOriginAllowed(getRequestOrigin(req))
+    ) {
+        return res.status(403).json({
+            success: false,
+            message: "Cross-site state-changing requests are not allowed"
+        })
+    }
+
+    return next()
+})
+
 const sendApiStatus = (_, res) => {
     res.status(200).json({
         success: true,

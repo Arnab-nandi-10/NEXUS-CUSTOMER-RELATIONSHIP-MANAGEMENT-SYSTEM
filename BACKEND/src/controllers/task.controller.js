@@ -23,11 +23,19 @@ const createTask = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Client not found")
     }
 
+    if (req.user.role !== "admin" && client.assignedTo?.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You can only create tasks for assigned clients")
+    }
+
     // Validate assignedTo user exists if provided
     if (assignedTo) {
         const user = await User.findById(assignedTo)
         if (!user) {
             throw new ApiError(404, "Assigned user not found")
+        }
+
+        if (req.user.role !== "admin" && assignedTo.toString() !== req.user._id.toString()) {
+            throw new ApiError(403, "You can only assign tasks to yourself")
         }
     }
 

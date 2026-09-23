@@ -13,7 +13,7 @@ const normalizeApiUrl = (url: string) => {
 }
 
 const getApiUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL
+  const envUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : '')
   if (!envUrl) {
     throw new Error('VITE_API_URL is not configured')
   }
