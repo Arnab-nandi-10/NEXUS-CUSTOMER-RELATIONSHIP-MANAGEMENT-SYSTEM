@@ -40,30 +40,6 @@ cd CRM-SAAS
 npm run install-all
 ```
 
-### 3. Configure environment variables
-
-Create `BACKEND/.env`:
-```env
-MONGODB_URI=mongodb://localhost:27017/nexus-crm
-PORT=8000
-JWT_SECRET=your-secret-key-here
-CORS_ORIGIN=http://localhost:3000
-```
-
-Create `FRONTEND/.env`:
-```env
-VITE_API_URL=http://localhost:8000/api/v1
-```
-
-### 4. Start the application
-```bash
-npm run dev
-```
-
-The application will run on:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
-
 ## 📁 Project Structure
 
 ```
