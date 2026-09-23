@@ -29,6 +29,22 @@ export const api = axios.create({
   withCredentials: true,
 })
 
+export const getApiErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    return error.response?.data?.message || error.message || fallback
+  }
+
+  if (error instanceof Error) {
+    return error.message || fallback
+  }
+
+  return fallback
+}
+
+export const getApiErrorStatus = (error: unknown) => {
+  return axios.isAxiosError(error) ? error.response?.status : undefined
+}
+
 // Request interceptor - attach token
 api.interceptors.request.use(
   (config) => {
@@ -48,9 +64,9 @@ api.interceptors.request.use(
 
 // Response interceptor - handle 401 with automatic token refresh
 let isRefreshing = false
-let failedQueue: { resolve: (value?: unknown) => void; reject: (reason?: any) => void }[] = []
+let failedQueue: { resolve: (value?: unknown) => void; reject: (reason?: unknown) => void }[] = []
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) reject(error)
     else resolve(token)
@@ -169,11 +185,11 @@ export const clientAPI = {
     const res = await api.get(`/clients/deleted?page=${page}`)
     return res.data
   },
-  create: async (data: any) => {
+  create: async (data: Record<string, unknown>) => {
     const res = await api.post('/clients/create-client', data)
     return res.data
   },
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Record<string, unknown>) => {
     const res = await api.patch(`/clients/update-client-details/${id}`, data)
     return res.data
   },
@@ -213,7 +229,7 @@ export const userAPI = {
     const res = await api.patch('/users/update-admin-account', data)
     return res.data
   },
-  updateUser: async (id: string, data: any) => {
+  updateUser: async (id: string, data: Record<string, unknown>) => {
     const res = await api.patch(`/users/update-user-details/${id}`, data)
     return res.data
   },
@@ -245,7 +261,7 @@ export const commAPI = {
 
 // ─── Reminders ─────────────────────────────────────
 export const reminderAPI = {
-  create: async (data: any) => {
+  create: async (data: Record<string, unknown>) => {
     const res = await api.post('/reminders/create', data)
     return res.data
   },
@@ -267,7 +283,7 @@ export const reminderAPI = {
     const res = await api.get(`/reminders/${id}`)
     return res.data
   },
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Record<string, unknown>) => {
     const res = await api.patch(`/reminders/${id}`, data)
     return res.data
   },
@@ -283,7 +299,7 @@ export const reminderAPI = {
 
 // ─── Tasks ─────────────────────────────────────────
 export const taskAPI = {
-  create: async (data: any) => {
+  create: async (data: Record<string, unknown>) => {
     const res = await api.post('/tasks/create', data)
     return res.data
   },
@@ -310,7 +326,7 @@ export const taskAPI = {
     const res = await api.get(`/tasks/${id}`)
     return res.data
   },
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Record<string, unknown>) => {
     const res = await api.patch(`/tasks/${id}`, data)
     return res.data
   },

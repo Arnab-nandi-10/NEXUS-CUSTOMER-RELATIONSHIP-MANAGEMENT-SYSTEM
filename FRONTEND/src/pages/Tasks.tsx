@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { CheckSquare, Plus, Clock, CheckCircle, AlertTriangle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
-import { taskAPI, clientAPI } from '@/lib/api'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
+import { taskAPI, clientAPI, getApiErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
 
@@ -42,7 +42,7 @@ export default function Tasks() {
   const loadTasks = useCallback(async () => {
     try {
       setLoading(true)
-      const filters: any = {}
+      const filters: { status?: string; priority?: string } = {}
       if (statusFilter) filters.status = statusFilter
       if (priorityFilter) filters.priority = priorityFilter
 
@@ -86,8 +86,8 @@ export default function Tasks() {
       })
       setShowModal(false)
       loadTasks()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create task')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to create task'))
     }
   }
 
@@ -95,7 +95,7 @@ export default function Tasks() {
     try {
       await taskAPI.toggleStatus(taskId)
       loadTasks()
-    } catch {}
+    } catch { /* ignore optimistic refresh failure */ }
   }
 
   const handleDelete = async (taskId: string) => {
@@ -103,10 +103,10 @@ export default function Tasks() {
     try {
       await taskAPI.delete(taskId)
       loadTasks()
-    } catch {}
+    } catch { /* ignore optimistic refresh failure */ }
   }
 
-  const priorityColor = (p: string) => {
+  const priorityColor = (p: string): BadgeVariant => {
     switch (p) {
       case 'High': return 'danger'
       case 'Medium': return 'warning'
@@ -196,7 +196,7 @@ export default function Tasks() {
                     {task.title}
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant={priorityColor(task.priority) as any} className="text-xs">{task.priority}</Badge>
+                    <Badge variant={priorityColor(task.priority)} className="text-xs">{task.priority}</Badge>
                     {isOverdue(task) && (
                       <Badge variant="danger" className="text-xs flex items-center gap-1">
                         <AlertTriangle size={10} /> Overdue

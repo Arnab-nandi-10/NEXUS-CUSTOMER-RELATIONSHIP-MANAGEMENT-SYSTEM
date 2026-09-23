@@ -44,8 +44,8 @@ export default function Register() {
       await register(name.trim(), email.trim(), password)
       // Registration succeeded — navigate to login so user can sign in cleanly
       navigate('/login?registered=1')
-    } catch (error: any) {
-      setError(error.message || 'Registration failed. Please try again.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }

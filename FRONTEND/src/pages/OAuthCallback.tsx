@@ -46,8 +46,8 @@ export default function OAuthCallback() {
 
       window.history.replaceState(null, '', '/oauth/callback')
       navigate('/app/dashboard', { replace: true })
-    } catch (err: any) {
-      setError(err.message || 'OAuth sign-in failed. Please try again.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OAuth sign-in failed. Please try again.')
     }
   }, [completeOAuthLogin, navigate])
 

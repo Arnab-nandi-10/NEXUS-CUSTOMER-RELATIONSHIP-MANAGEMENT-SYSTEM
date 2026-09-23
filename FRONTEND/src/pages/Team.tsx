@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, UserCog, Shield, Briefcase, Headphones, ToggleLeft, ToggleRight, Edit2, ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
 import Avatar from '@/components/ui/Avatar'
-import { userAPI, authAPI } from '@/lib/api'
+import { userAPI, authAPI, getApiErrorMessage } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 interface TeamUser {
@@ -56,8 +56,8 @@ export default function Team() {
       setShowAddModal(false)
       setForm({ fullname: '', email: '', password: '', role: 'sales' })
       loadUsers()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create user')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to create user'))
     }
   }
 
@@ -65,8 +65,8 @@ export default function Team() {
     try {
       await userAPI.toggleStatus(userId)
       loadUsers()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to toggle user status')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to toggle user status'))
     }
   }
 
@@ -75,8 +75,8 @@ export default function Team() {
       await userAPI.updateRole(userId, newRole)
       setEditingUser(null)
       loadUsers()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update role')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to update role'))
     }
   }
 
@@ -89,7 +89,7 @@ export default function Team() {
     }
   }
 
-  const roleBadgeVariant = (role: string) => {
+  const roleBadgeVariant = (role: string): BadgeVariant => {
     switch (role) {
       case 'admin': return 'danger'
       case 'sales': return 'info'
@@ -187,7 +187,7 @@ export default function Team() {
                       </select>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Badge variant={roleBadgeVariant(u.role) as any} className="text-xs capitalize">
+                        <Badge variant={roleBadgeVariant(u.role)} className="text-xs capitalize">
                           {roleIcon(u.role)} {u.role}
                         </Badge>
                       </div>

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Building2, Mail, Phone, MapPin, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
-import { clientAPI } from '@/lib/api'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
+import { clientAPI, getApiErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
 
@@ -55,12 +55,12 @@ export default function MyClients() {
     try {
       await clientAPI.updateLead(id, status)
       loadClients()
-    } catch (err: any) { alert(err.response?.data?.message || 'Update failed') }
+    } catch (err) { alert(getApiErrorMessage(err, 'Update failed')) }
   }
 
   const statusColor = (s: string) => {
-    const m: Record<string, string> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
-    return (m[s] || 'default') as any
+    const m: Record<string, BadgeVariant> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
+    return m[s] || 'default'
   }
 
   const filtered = clients

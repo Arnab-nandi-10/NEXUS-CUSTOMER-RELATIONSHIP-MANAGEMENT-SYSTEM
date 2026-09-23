@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect, useCallback } from 'react'
 import { Plus, Search, X, Building2, Mail, Phone, MapPin, Edit2, Trash2, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
-import { clientAPI } from '@/lib/api'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
+import { clientAPI, getApiErrorMessage } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 interface Client {
@@ -75,8 +75,8 @@ export default function Customers() {
       setShowModal(false)
       resetForm()
       loadClients()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Something went wrong')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Something went wrong'))
     }
   }
 
@@ -85,8 +85,8 @@ export default function Customers() {
     try {
       await clientAPI.delete(id)
       loadClients()
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Delete failed')
+    } catch (err) {
+      alert(getApiErrorMessage(err, 'Delete failed'))
     }
   }
 
@@ -94,8 +94,8 @@ export default function Customers() {
     try {
       await clientAPI.updateLead(id, status)
       loadClients()
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Update failed')
+    } catch (err) {
+      alert(getApiErrorMessage(err, 'Update failed'))
     }
   }
 
@@ -108,8 +108,8 @@ export default function Customers() {
   )
 
   const statusColor = (s: string) => {
-    const m: Record<string, string> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
-    return (m[s] || 'default') as any
+    const m: Record<string, BadgeVariant> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
+    return m[s] || 'default'
   }
 
   return (

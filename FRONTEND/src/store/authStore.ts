@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { authAPI } from '@/lib/api'
+import { authAPI, getApiErrorMessage, getApiErrorStatus } from '@/lib/api'
 import { analyticsEvents } from '@/lib/analytics'
 
 interface User {
@@ -54,8 +54,8 @@ export const useAuthStore = create<AuthState>()(
             loading: false
           })
           analyticsEvents.loginSucceeded(user.role)
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || error.message || 'Login failed'
+        } catch (error) {
+          const errorMessage = getApiErrorMessage(error, 'Login failed')
           set({ 
             loading: false, 
             error: errorMessage,
@@ -77,14 +77,15 @@ export const useAuthStore = create<AuthState>()(
 
           set({ loading: false })
           analyticsEvents.registrationCompleted('sales')
-        } catch (error: any) {
+        } catch (error) {
           let errorMessage = 'Registration failed'
-          if (error.response?.status === 409) {
+          if (getApiErrorStatus(error) === 409) {
             errorMessage = 'An account with this email already exists. Please sign in instead.'
-          } else if (error.response?.data?.message) {
-            errorMessage = error.response.data.message
-          } else if (error.message && !error.message.startsWith('Request failed')) {
-            errorMessage = error.message
+          } else {
+            const apiMessage = getApiErrorMessage(error, errorMessage)
+            if (!apiMessage.startsWith('Request failed')) {
+              errorMessage = apiMessage
+            }
           }
           set({
             loading: false,

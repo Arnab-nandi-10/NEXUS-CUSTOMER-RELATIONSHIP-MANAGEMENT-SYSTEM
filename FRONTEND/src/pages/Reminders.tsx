@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Bell, Plus, Clock, CheckCircle, Trash2, ChevronLeft, ChevronRight, Mail, MessageSquare } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
-import { reminderAPI, clientAPI } from '@/lib/api'
+import { reminderAPI, clientAPI, getApiErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
 
@@ -80,8 +80,8 @@ export default function Reminders() {
       await reminderAPI.create(form)
       setShowModal(false)
       loadReminders()
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create reminder')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to create reminder'))
     }
   }
 
@@ -89,7 +89,7 @@ export default function Reminders() {
     try {
       await reminderAPI.markSent(id)
       loadReminders()
-    } catch {}
+    } catch { /* ignore optimistic refresh failure */ }
   }
 
   const handleDelete = async (id: string) => {
@@ -97,7 +97,7 @@ export default function Reminders() {
     try {
       await reminderAPI.delete(id)
       loadReminders()
-    } catch {}
+    } catch { /* ignore optimistic refresh failure */ }
   }
 
   const isPast = (dateStr: string) => new Date(dateStr) < new Date()

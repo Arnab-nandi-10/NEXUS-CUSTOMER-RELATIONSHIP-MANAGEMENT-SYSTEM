@@ -207,7 +207,7 @@ app.use((req, res) => {
 
 // Global error handler - returns JSON instead of HTML
 app.use((err, req, res, next) => {
-    const statusCode = err.statusCode || 500
+    const statusCode = err.statusCode || (err.name === "MulterError" ? 400 : 500)
     const message = err.message || "Something went wrong"
 
     if (/\/auth\/(google|github)\/callback$/.test(req.path)) {

@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { Clock, UserPlus, Building2, TrendingUp } from 'lucide-react'
-import Badge from '@/components/ui/Badge'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
 import { clientAPI } from '@/lib/api'
 import { formatDateTime } from '@/lib/utils'
 
@@ -36,6 +36,11 @@ export default function Activity() {
       case 'Converted': return <TrendingUp size={16} className="text-emerald-500" />
       default: return <Building2 size={16} className="text-dark-400" />
     }
+  }
+
+  const statusColor = (status: string): BadgeVariant => {
+    const variants: Record<string, BadgeVariant> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
+    return variants[status] || 'default'
   }
 
   if (loading) {
@@ -74,7 +79,7 @@ export default function Activity() {
                       Client <span className="text-primary-600">{client.fullname || 'Unknown'}</span>
                       {client.companyName && <span className="text-dark-400"> from {client.companyName}</span>}
                     </p>
-                    <Badge variant={({'New':'info','In Progress':'warning','Converted':'success','Lost':'danger'}[client.leadStatus] || 'default') as any} className="text-xs shrink-0">
+                    <Badge variant={statusColor(client.leadStatus)} className="text-xs shrink-0">
                       {client.leadStatus}
                     </Badge>
                   </div>

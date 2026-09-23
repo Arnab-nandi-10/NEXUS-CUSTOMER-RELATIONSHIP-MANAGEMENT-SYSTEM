@@ -2,7 +2,7 @@
 import { User, Lock, Palette, Save, AlertCircle, CheckCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { useAuthStore } from '@/store/authStore'
-import { userAPI, authAPI } from '@/lib/api'
+import { userAPI, authAPI, getApiErrorMessage } from '@/lib/api'
 import { useThemeStore } from '@/store/themeStore'
 
 export default function Settings() {
@@ -26,8 +26,8 @@ export default function Settings() {
       const res = await userAPI.updateAdmin({ fullname: name, email })
       updateUser({ name: res.data.fullname, email: res.data.email })
       setSuccess('Profile updated successfully!')
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to update profile'))
     } finally { setSaving(false) }
   }
 
@@ -41,8 +41,8 @@ export default function Settings() {
       await authAPI.changePassword(oldPassword, newPassword)
       setSuccess('Password changed successfully!')
       setOldPassword(''); setNewPassword(''); setConfirmPassword('')
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to change password')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to change password'))
     } finally { setSaving(false) }
   }
 

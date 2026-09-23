@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
+import Badge, { type BadgeVariant } from '@/components/ui/Badge'
 import { dashboardAPI } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
@@ -32,6 +32,67 @@ interface TaskItem {
   assignedTo?: { fullname: string }
 }
 
+interface LeadBreakdownItem {
+  _id: string
+  count: number
+}
+
+interface ClientStats {
+  total: number
+  active: number
+  newLeads: number
+  inProgress: number
+  converted: number
+}
+
+interface TaskStats {
+  total: number
+  pending: number
+  completed: number
+  overdue: number
+}
+
+interface DashboardStats {
+  clients?: Partial<ClientStats> | number
+  users?: { total: number; sales: number; support: number }
+  tasks?: Partial<TaskStats>
+  reminders?: { total: number; pending: number }
+  pendingReminders?: number
+  communications?: number
+}
+
+interface DashboardData {
+  stats?: DashboardStats
+  leadBreakdown?: LeadBreakdownItem[]
+  overdueTasks?: TaskItem[]
+  recentClients?: Client[]
+  recentTasks?: TaskItem[]
+  upcomingTasks?: TaskItem[]
+}
+
+const getClientStats = (stats?: DashboardStats): ClientStats => {
+  const clients = stats?.clients
+
+  if (typeof clients === 'number') {
+    return { total: clients, active: clients, newLeads: 0, inProgress: 0, converted: 0 }
+  }
+
+  return {
+    total: clients?.total ?? 0,
+    active: clients?.active ?? 0,
+    newLeads: clients?.newLeads ?? 0,
+    inProgress: clients?.inProgress ?? 0,
+    converted: clients?.converted ?? 0,
+  }
+}
+
+const getTaskStats = (stats?: DashboardStats): TaskStats => ({
+  total: stats?.tasks?.total ?? 0,
+  pending: stats?.tasks?.pending ?? 0,
+  completed: stats?.tasks?.completed ?? 0,
+  overdue: stats?.tasks?.overdue ?? 0,
+})
+
 // ────────────────────────────────────────────────────
 // Role-aware Dashboard
 // ────────────────────────────────────────────────────
@@ -51,7 +112,7 @@ function AdminDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<DashboardData | null>(null)
 
   useEffect(() => {
     (async () => {
@@ -64,9 +125,9 @@ function AdminDashboard() {
   }, [])
 
   const s = data?.stats
-  const clients = s?.clients || { total: 0, active: 0 }
+  const clients = getClientStats(s)
   const users = s?.users || { total: 0, sales: 0, support: 0 }
-  const tasks = s?.tasks || { total: 0, pending: 0, completed: 0, overdue: 0 }
+  const tasks = getTaskStats(s)
   const reminders = s?.reminders || { total: 0, pending: 0 }
 
   return (
@@ -103,7 +164,7 @@ function AdminDashboard() {
             <div className="card p-6">
               <h2 className="text-lg font-bold text-dark-900 dark:text-dark-50 mb-4">Lead Pipeline</h2>
               <div className="space-y-3">
-                {(data?.leadBreakdown || []).map((item: any) => {
+                {(data?.leadBreakdown || []).map((item) => {
                   const pct = clients.total > 0 ? Math.round((item.count / clients.total) * 100) : 0
                   const colorMap: Record<string, string> = { 'New': 'bg-blue-500', 'In Progress': 'bg-amber-500', 'Converted': 'bg-emerald-500', 'Lost': 'bg-red-500' }
                   return (
@@ -166,7 +227,7 @@ function SalesDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<DashboardData | null>(null)
 
   useEffect(() => {
     (async () => {
@@ -177,8 +238,8 @@ function SalesDashboard() {
   }, [])
 
   const s = data?.stats
-  const clients = s?.clients || { total: 0, newLeads: 0, inProgress: 0, converted: 0 }
-  const tasks = s?.tasks || { total: 0, pending: 0, completed: 0, overdue: 0 }
+  const clients = getClientStats(s)
+  const tasks = getTaskStats(s)
 
   return (
     <div className="space-y-6 p-4 md:p-6 animate-fade-in">
@@ -235,7 +296,7 @@ function SupportDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<DashboardData | null>(null)
 
   useEffect(() => {
     (async () => {
@@ -246,7 +307,7 @@ function SupportDashboard() {
   }, [])
 
   const s = data?.stats
-  const tasks = s?.tasks || { total: 0, pending: 0, completed: 0 }
+  const tasks = getTaskStats(s)
 
   return (
     <div className="space-y-6 p-4 md:p-6 animate-fade-in">
@@ -263,7 +324,7 @@ function SupportDashboard() {
       {loading ? <DashboardSkeleton /> : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={<Users />} label="My Clients" value={s?.clients || 0} accent="primary" />
+            <StatCard icon={<Users />} label="My Clients" value={getClientStats(s).total} accent="primary" />
             <StatCard icon={<ListTodo />} label="Tasks" value={tasks.total} accent="blue" />
             <StatCard icon={<CheckCircle />} label="Completed" value={tasks.completed} accent="emerald" />
             <StatCard icon={<Bell />} label="Pending Reminders" value={s?.pendingReminders || 0} accent="amber" />
@@ -339,8 +400,8 @@ function MiniStat({ label, value, icon, color }: { label: string; value: number;
 
 function RecentClientsList({ clients, onViewAll }: { clients: Client[]; loading?: boolean; onViewAll: () => void }) {
   const statusColor = (s: string) => {
-    const m: Record<string, string> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
-    return (m[s] || 'default') as any
+    const m: Record<string, BadgeVariant> = { 'New': 'info', 'In Progress': 'warning', 'Converted': 'success', 'Lost': 'danger' }
+    return m[s] || 'default'
   }
 
   return (
@@ -380,8 +441,8 @@ function RecentClientsList({ clients, onViewAll }: { clients: Client[]; loading?
 
 function RecentTasksList({ tasks, onViewAll, title = 'Recent Tasks' }: { tasks: TaskItem[]; onViewAll: () => void; title?: string }) {
   const priorityColor = (p: string) => {
-    const m: Record<string, string> = { 'High': 'danger', 'Medium': 'warning', 'Low': 'info' }
-    return (m[p] || 'default') as any
+    const m: Record<string, BadgeVariant> = { 'High': 'danger', 'Medium': 'warning', 'Low': 'info' }
+    return m[p] || 'default'
   }
 
   if (tasks.length === 0) return null
